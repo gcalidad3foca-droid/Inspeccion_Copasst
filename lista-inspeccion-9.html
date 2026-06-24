@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Lista de Verificación de Condiciones Seguras — COPASST</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0; padding: 0; color: #2c3e50;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.card { background: #fff; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); overflow: hidden; margin-bottom: 20px; }
+
+.topbar-link { display:flex; justify-content:flex-end; margin-bottom:10px; }
+.topbar-link a { color:#fff; background:rgba(255,255,255,0.18); padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+.topbar-link a:hover { background:rgba(255,255,255,0.3); }
+
+.header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 24px; position: relative; overflow: hidden; }
+.header::before { content:''; position:absolute; top:-50%; right:-50%; width:200%; height:200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); animation: pulse 8s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:0.5;} 50%{transform:scale(1.1);opacity:0.8;} }
+.header-content { position:relative; z-index:1; }
+.logo-section { display:flex; align-items:center; justify-content:center; gap:14px; margin-bottom:20px; width:100%; text-align:center; }
+.logo-section img { height:68px; width:auto; object-fit:contain; flex-shrink:0; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+.org-name { font-size:22px; font-weight:700; line-height:1.3; letter-spacing:0.3px; text-align:left; text-shadow:0 2px 4px rgba(0,0,0,0.1); }
+.title-section { text-align:center; margin-bottom:20px; }
+.main-title { font-size:22px; font-weight:700; margin:0 0 8px 0; text-shadow:0 2px 4px rgba(0,0,0,0.1); }
+.subtitle { font-size:13px; opacity:0.9; margin:0; }
+.header-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-top:20px; }
+.header-item { background:rgba(255,255,255,0.15); backdrop-filter:blur(10px); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.2); }
+.header-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; opacity:0.9; }
+.header-value { font-size:15px; font-weight:700; color:#fff; }
+
+.meta-section { padding:24px; background:#f8f9fa; }
+.meta-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+.meta-field label { display:block; font-size:12px; font-weight:600; color:#1e3c72; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px; }
+.meta-field input, .meta-field select { width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-size:14px; transition:all .3s ease; background:white; font-family:inherit; }
+.meta-field input:focus, .meta-field select:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.1); }
+
+.table-container { padding:24px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+table { width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; }
+th { background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%); color:white; padding:13px 8px; text-align:center; font-weight:600; font-size:12px; white-space:nowrap; }
+th:first-child { border-top-left-radius:10px; text-align:left; }
+th:last-child { border-top-right-radius:10px; }
+td { padding:10px 8px; border-bottom:1px solid #e0e0e0; background:white; vertical-align:middle; }
+tr:hover td { background:#f8f9fa; }
+.section-title { background:linear-gradient(90deg,#667eea 0%,#764ba2 100%) !important; color:white !important; font-weight:700; font-size:13.5px; padding:13px !important; text-transform:uppercase; letter-spacing:0.5px; }
+.result-row td { background:#e8f5e9 !important; font-weight:700; color:#2e7d32; font-size:14px; }
+.radio-cell { text-align:center; }
+.resp-btn { width:36px; height:30px; border-radius:6px; border:1.5px solid #e0e0e0; background:#fff; font-size:11px; font-weight:800; cursor:pointer; color:#aaa; }
+.resp-btn.si.sel { background:#4caf50; border-color:#4caf50; color:#fff; }
+.resp-btn.no.sel { background:#f44336; border-color:#f44336; color:#fff; }
+.resp-btn.na.sel { background:#90a4ae; border-color:#90a4ae; color:#fff; }
+.obs-input { width:100%; min-width:140px; border:1px solid #e0e0e0; border-radius:6px; padding:8px; font-size:12.5px; font-family:inherit; }
+.obs-input:focus { outline:none; border-color:#667eea; }
+
+.evidence-cell { text-align:center; vertical-align:middle; padding:8px 4px; }
+.evidence-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:6px 0; width:64px; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; border:none; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(102,126,234,0.2); position:relative; }
+.evidence-btn:hover { transform:translateY(-2px); }
+.evidence-btn.has-evidence { background:linear-gradient(135deg,#4caf50 0%,#66bb6a 100%); }
+.evidence-count { position:absolute; top:-7px; right:-7px; background:#f44336; color:#fff; border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+.om-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:6px 0; width:54px; background:linear-gradient(135deg,#7c8ff0 0%,#9c6fd6 100%); color:white; border:none; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; box-shadow:0 2px 8px rgba(124,143,240,0.2); }
+.om-btn:hover { transform:translateY(-2px); }
+.om-btn.has-om { background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%); }
+
+.modal { display:none; position:fixed; z-index:4500; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.75); animation:fadeIn .3s ease; }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+.modal-content { position:relative; background:#fff; margin:4% auto; border-radius:14px; width:92%; max-width:760px; max-height:90vh; overflow:hidden; box-shadow:0 10px 40px rgba(0,0,0,0.3); animation:slideIn .3s ease; display:flex; flex-direction:column; }
+@keyframes slideIn { from{transform:translateY(-30px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+.modal-header { background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%); color:white; padding:16px 22px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.modal-header h2 { margin:0; font-size:16px; font-weight:700; }
+.modal-header p { margin:2px 0 0; font-size:11.5px; opacity:0.85; }
+.close { color:white; font-size:28px; font-weight:300; cursor:pointer; line-height:1; background:none; border:none; }
+.modal-body { padding:22px; overflow-y:auto; }
+
+.upload-options { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+.upload-option-btn { flex:1; min-width:130px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:16px 12px; border:2px dashed #667eea; border-radius:12px; background:#f8f9fa; cursor:pointer; font-size:12.5px; font-weight:600; color:#1e3c72; text-align:center; }
+.upload-option-btn:hover { background:#eff3ff; }
+.upload-option-btn i { font-size:26px; color:#667eea; }
+.upload-option-btn input[type="file"] { display:none; }
+.drop-zone { border:2px dashed #667eea; border-radius:12px; background:#f8f9fa; padding:18px 16px; text-align:center; color:#1e3c72; font-size:12.5px; font-weight:600; cursor:pointer; margin-bottom:14px; }
+.drop-zone i { font-size:24px; color:#667eea; display:block; margin-bottom:6px; }
+.drop-zone span { display:block; font-size:11px; color:#888; font-weight:400; margin-top:3px; }
+.drop-zone.drag-over { background:#eff3ff; border-style:solid; transform:scale(1.01); }
+
+.evidence-preview { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; }
+.evidence-item { position:relative; border-radius:10px; overflow:hidden; box-shadow:0 3px 12px rgba(0,0,0,0.12); background:white; border:1px solid #e8e8e8; }
+.evidence-item img { width:100%; height:140px; object-fit:cover; display:block; image-orientation:from-image; }
+.evidence-title-bar { padding:7px 9px 9px; }
+.evidence-title-input { width:100%; border:1.5px solid #ddd; border-radius:7px; padding:6px 8px; font-size:11.5px; font-family:inherit; }
+.evidence-title-input:focus { outline:none; border-color:#667eea; }
+.evidence-remove { position:absolute; top:6px; right:6px; background:#f44336; color:white; border:none; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+.evidence-remove:hover { background:#c62828; }
+
+.om-textarea { width:100%; padding:12px; border:2px solid #e0e0e0; border-radius:8px; font-size:13.5px; font-family:inherit; resize:vertical; min-height:110px; }
+.om-textarea:focus { outline:none; border-color:#667eea; box-shadow:0 0 0 3px rgba(102,126,234,0.1); }
+.om-save-btn { margin-top:14px; width:100%; padding:12px; background:linear-gradient(135deg,#7c8ff0 0%,#9c6fd6 100%); color:#fff; border:none; border-radius:8px; font-size:13.5px; font-weight:700; cursor:pointer; }
+.om-save-btn:hover { opacity:0.9; }
+
+.results-section { padding:24px; background:#f8f9fa; }
+.results-title { font-size:17px; font-weight:700; color:#1e3c72; margin:0 0 18px 0; display:flex; align-items:center; gap:10px; }
+.summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:22px; }
+.summary-card { background:#fff; border-radius:12px; padding:16px; text-align:center; box-shadow:0 3px 10px rgba(0,0,0,0.06); }
+.summary-card .n { font-size:26px; font-weight:800; }
+.summary-card .l { font-size:11px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:0.4px; margin-top:4px; }
+.summary-card.si .n { color:#2e7d32; } .summary-card.no .n { color:#c62828; } .summary-card.na .n { color:#607d8b; }
+.summary-card.obs .n { color:#1e3c72; } .summary-card.om .n { color:#9c27b0; }
+
+.final-score { border-radius:16px; padding:28px; text-align:center; color:white; box-shadow:0 8px 24px rgba(0,0,0,0.2); margin-bottom:22px; transition:background .5s ease; }
+.final-score-label { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; opacity:0.9; }
+.final-score-value { font-size:58px; font-weight:800; margin:0; text-shadow:0 4px 12px rgba(0,0,0,0.3); }
+
+.charts-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:20px; }
+.chart-container { background:white; border-radius:12px; padding:18px; box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+.chart-title { font-size:15px; font-weight:700; color:#1e3c72; margin:0 0 12px 0; text-align:center; }
+.chart-wrapper { position:relative; height:240px; }
+
+.export-buttons-container { background:white; padding:22px; border-top:2px solid #e0e0e0; display:flex; justify-content:center; gap:16px; flex-wrap:wrap; }
+.export-btn { display:flex; align-items:center; gap:10px; padding:14px 24px; border:none; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; min-width:200px; justify-content:center; }
+.export-btn i { font-size:17px; }
+.btn-report { background:linear-gradient(135deg,#9c27b0 0%,#7b1fa2 100%); color:white; box-shadow:0 4px 12px rgba(156,39,176,0.2); }
+.btn-report:hover { transform:translateY(-3px); }
+.btn-save { background:linear-gradient(135deg,#2196f3 0%,#1976d2 100%); color:white; box-shadow:0 4px 12px rgba(33,150,243,0.2); }
+.btn-save:hover { transform:translateY(-3px); }
+.export-btn:disabled { opacity:0.55; cursor:not-allowed; transform:none !important; }
+
+.notification { position:fixed; bottom:20px; right:20px; padding:15px 20px; border-radius:8px; color:white; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,0.2); z-index:5000; display:flex; align-items:center; gap:10px; transform:translateY(100px); opacity:0; transition:transform .3s ease, opacity .3s ease; max-width:380px; }
+.notification.show { transform:translateY(0); opacity:1; }
+.notification-success { background:linear-gradient(135deg,#4caf50 0%,#388e3c 100%); }
+.notification-error { background:linear-gradient(135deg,#f44336 0%,#d32f2f 100%); }
+.notification-info { background:linear-gradient(135deg,#2196f3 0%,#1976d2 100%); }
+
+.loading-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999; justify-content:center; align-items:center; }
+.loading-overlay.show { display:flex; }
+.loading-content { text-align:center; color:white; }
+.spinner { border:4px solid rgba(255,255,255,0.3); border-top:4px solid white; border-radius:50%; width:56px; height:56px; animation:spin 1s linear infinite; margin:0 auto 18px; }
+@keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+.loading-text { font-size:17px; font-weight:600; margin-bottom:6px; }
+.loading-subtext { font-size:13px; opacity:0.8; }
+
+@media (max-width:768px){
+  .header{padding:20px 16px;} .logo-section img{height:48px;}
+  .org-name{font-size:16px;} .logo-section{gap:10px;}
+  .main-title{font-size:18px;} .header-grid{grid-template-columns:repeat(2,1fr);}
+  .table-container{padding:14px;} table{font-size:12px;} th,td{padding:8px 5px;}
+  .final-score-value{font-size:42px;} .export-buttons-container{flex-direction:column;align-items:center;}
+  .export-btn{width:100%;max-width:300px;} .charts-grid{grid-template-columns:1fr;}
+  .upload-options{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar-link"><a href="panel.html"><i class="fas fa-arrow-left"></i> Volver al panel</a></div>
+  <div class="card">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-content">
+        <div class="logo-section">
+          <img src="https://i.imgur.com/F27EdWc.png" alt="Logo COPASST" onerror="this.style.display='none'">
+          <div class="org-name">COMITÉ PARITARIO DE SEGURIDAD Y SALUD EN EL TRABAJO</div>
+        </div>
+        <div class="title-section">
+          <h1 class="main-title">LISTA DE VERIFICACIÓN DE CONDICIONES SEGURAS</h1>
+          <p class="subtitle">Inspección de Seguridad y Salud en el Trabajo</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- META -->
+    <div class="meta-section">
+      <div class="meta-grid">
+        <div class="meta-field">
+          <label>Fecha de Inspección</label>
+          <input type="date" id="fecha">
+        </div>
+        <div class="meta-field">
+          <label>Empresa</label>
+          <select id="empresa" onchange="onChangeEmpresa()">
+            <option value="FOCA">FOCA</option>
+            <option value="VIU">VIU</option>
+            <option value="IMES">IMES</option>
+          </select>
+        </div>
+        <div class="meta-field">
+          <label>Sede</label>
+          <select id="sede"></select>
+        </div>
+        <div class="meta-field">
+          <label>Inspector(a)</label>
+          <select id="inspector"></select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- CHECKLIST TABLE -->
+    <div class="table-container">
+      <table id="checklist">
+        <thead>
+          <tr>
+            <th style="width:30%;">ASPECTO A VERIFICAR</th>
+            <th style="width:7%;">SI</th>
+            <th style="width:7%;">NO</th>
+            <th style="width:7%;">N/A</th>
+            <th style="width:9%;">EVIDENCIA</th>
+            <th style="width:9%;">OPT. MEJORA</th>
+            <th style="width:31%;">OBSERVACIONES</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-section">
+      <h2 class="results-title"><i class="fas fa-clipboard-check"></i> Resumen de Resultados</h2>
+      <div class="summary-grid">
+        <div class="summary-card si"><div class="n" id="sum-si">0</div><div class="l">Cumplen (SI)</div></div>
+        <div class="summary-card no"><div class="n" id="sum-no">0</div><div class="l">No cumplen (NO)</div></div>
+        <div class="summary-card na"><div class="n" id="sum-na">0</div><div class="l">No aplica</div></div>
+        <div class="summary-card obs"><div class="n" id="sum-obs">0</div><div class="l">Observaciones</div></div>
+        <div class="summary-card om"><div class="n" id="sum-om">0</div><div class="l">Oport. de mejora</div></div>
+      </div>
+      <div class="final-score" id="final-score-box">
+        <div class="final-score-label">Cumplimiento General de la Inspección</div>
+        <div class="final-score-value" id="total-pct">0%</div>
+      </div>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h3 class="chart-title">Cumplimiento por Categoría</h3>
+          <div class="chart-wrapper"><canvas id="categoryChart"></canvas></div>
+        </div>
+        <div class="chart-container">
+          <h3 class="chart-title">Distribución de Respuestas</h3>
+          <div class="chart-wrapper"><canvas id="distributionChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUTTONS -->
+    <div class="export-buttons-container">
+      <button class="export-btn btn-report" id="btn-informe" onclick="generarInforme()"><i class="fas fa-file-pdf"></i> Generar informe</button>
+      <button class="export-btn btn-save" id="btn-guardar" onclick="guardarAuditoria()"><i class="fas fa-save"></i> Guardar auditoría</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EVIDENCE MODAL ===== -->
+<div id="evidenceModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div>
+        <h2 id="modal-title"><i class="fas fa-camera" style="margin-right:8px;"></i>Evidencia Fotográfica</h2>
+        <p id="modal-sub">Ítem seleccionado</p>
+      </div>
+      <button class="close" onclick="closeEvidenceModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="drop-zone" id="dropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        Arrastra las fotos aquí
+        <span>o usa los botones de abajo</span>
+      </div>
+      <div class="upload-options">
+        <label class="upload-option-btn">
+          <i class="fas fa-camera"></i><span>Tomar Foto</span>
+          <input type="file" accept="image/*" capture="environment" onchange="handleEvidenceUpload(event)">
+        </label>
+        <label class="upload-option-btn">
+          <i class="fas fa-images"></i><span>Galería / Archivo</span>
+          <input type="file" accept="image/*" multiple onchange="handleEvidenceUpload(event)">
+        </label>
+      </div>
+      <div id="evidence-preview" class="evidence-preview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== OPORTUNIDAD DE MEJORA MODAL ===== -->
+<div id="omModal" class="modal">
+  <div class="modal-content" style="max-width:520px;">
+    <div class="modal-header">
+      <div>
+        <h2><i class="fas fa-lightbulb" style="margin-right:8px;"></i>Oportunidad de Mejora</h2>
+        <p id="om-sub">Ítem seleccionado</p>
+      </div>
+      <button class="close" onclick="closeOmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <textarea id="om-textarea" class="om-textarea" placeholder="Describa la oportunidad de mejora o recomendación para este ítem..." maxlength="500"></textarea>
+      <button class="om-save-btn" onclick="saveOm()"><i class="fas fa-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-overlay" class="loading-overlay">
+  <div class="loading-content">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Generando informe...</div>
+    <div class="loading-subtext">Por favor espere</div>
+  </div>
+</div>
+
+<div id="notification" class="notification">
+  <i class="fas fa-check-circle"></i>
+  <span id="notification-text">Operación completada con éxito</span>
+</div>
+
+<script>
+/* ====================================================================
+   CONFIGURACIÓN — completar antes de usar
+==================================================================== */
+const GAS_URL = "PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT_WEB_APP";
+const CLOUDINARY_CLOUD  = "TU_CLOUD_NAME";
+const CLOUDINARY_PRESET = "TU_UPLOAD_PRESET";
+
+/* ====================================================================
+   DATOS BASE
+==================================================================== */
+const CATEGORIAS = [
+  { id:'orden', nombre:'Orden y Aseo', items:[
+    '¿El área se encuentra limpia y ordenada?',
+    '¿Los pasillos y vías de circulación se encuentran despejados?',
+    '¿Las escaleras y rampas se encuentran limpias y libres de obstáculos?',
+    '¿Los escritorios se encuentran limpios y ordenados?',
+    '¿Existen canecas debidamente identificadas para el desecho de residuos ordinarios y/u hospitalarios?',
+    '¿Los cables de los equipos y/o herramientas se encuentran debidamente organizados?',
+    '¿El área cuenta con guardianes recolectores?',
+    '¿Se encuentran los guardianes recolectores debidamente instalados?'
+  ]},
+  { id:'infraestructura', nombre:'Infraestructura', items:[
+    '¿Los pisos y paredes están libres de agrietamiento, humedad o irregularidades en sus superficies?',
+    '¿Los techos se encuentran libres de orificios y bien ajustados?',
+    '¿Las puertas y ventanas se encuentran en óptimas condiciones?',
+    '¿Los vidrios internos y externos se encuentran en buenas condiciones y señalizados?',
+    '¿Las escaleras y rampas de acceso se encuentran en óptimas condiciones?',
+    '¿Los pasamanos de las escaleras y/o rampas se encuentran en buenas condiciones?',
+    '¿Los peldaños de las escaleras fijas cuentan con antideslizante?'
+  ]},
+  { id:'electricas', nombre:'Instalaciones Eléctricas', items:[
+    '¿Los aires acondicionados se encuentran en buenas condiciones de funcionamiento?',
+    '¿Las luminarias están funcionando en óptimas condiciones?',
+    '¿Los tomacorrientes funcionan correctamente y se encuentran en buen estado?',
+    '¿Los interruptores funcionan correctamente y se encuentran en buen estado?',
+    '¿Los tableros eléctricos funcionan correctamente, se encuentran en buen estado con sus tapas y señalizados?',
+    '¿Los cables de los equipos eléctricos se encuentran debidamente organizados y protegidos?',
+    '¿Los cuartos de control eléctrico (subestación y/o planta de emergencia) se encuentran limpios y libres de objetos ajenos a este espacio?'
+  ]},
+  { id:'muebles', nombre:'Muebles y Enseres', items:[
+    '¿Todos los puestos de trabajo están dotados de escritorios y sillas?',
+    '¿Las sillas y escritorios se encuentran en buenas condiciones?',
+    '¿Los archivadores y repisas se encuentran debidamente anclados a la pared?'
+  ]},
+  { id:'equipos', nombre:'Equipos y Herramientas', items:[
+    '¿Los equipos y herramientas de trabajo se encuentran bien ubicados?',
+    '¿Los equipos y herramientas de trabajo se encuentran funcionando adecuadamente?',
+    '¿Los cables y dispositivos de control de los equipos y herramientas se encuentran en óptimas condiciones?',
+    '¿Las sillas de ruedas y camillas para pacientes funcionan correctamente?'
+  ]},
+  { id:'emergencia', nombre:'Elementos de Emergencia', items:[
+    '¿El área se encuentra debidamente señalizada con vías de evacuación y salida de emergencia?',
+    '¿Existen extintores adecuados y están distribuidos en toda el área?',
+    '¿Los extintores se encuentran ubicados en una zona de fácil acceso?',
+    '¿Existen botiquines de primeros auxilios señalizados y debidamente dotados?',
+    '¿Existen lámparas de emergencia en el área?',
+    '¿Existe un sistema de detección de humo y calor?',
+    '¿Existe un sistema de alarmas?',
+    '¿Existen camillas e inmovilizadores en el área?'
+  ]}
+];
+
+const SEDES = {
+  FOCA: ['Foca Alegra','Foca Alkarawi','Foca Casona','Foca Baranoa','Foca Cartagena','Foca Galapa','Foca Malambo','Foca Riohacha','Foca Sabanalarga 1','Foca Sabanalarga 2','Foca Santa Marta Burano','Foca Valledupar','Mall Plaza','Sala Azul Santa Marta','Foca Sede 1 – 51B','Foca Sede 2','Foca Viva'],
+  VIU:  ['Sala Azul Mall Plaza','Sala Azul Santa Marta','Sala Azul Valledupar'],
+  IMES: ['IMES']
+};
+const ORG_NAMES = { FOCA:'FUNDACIÓN OFTALMOLÓGICA DEL CARIBE — COPASST', VIU:'CLÍNICA OFTALMOLÓGICA INTERNACIONAL — SUBCOMITÉ COPASST', IMES:'INVERSIONES MÉDICAS ESCAF SALES — SUBCOMITÉ COPASST' };
+const INSPECTORES = ['Adrián Ortiz','Vera Sarmiento','Mary Luz Guzmán','Sandra Rodríguez','Luis Bolaño','Yuranis Miranda'];
+
+/* ====================================================================
+   BANCO DE FRASES NARRATIVAS POR ÍTEM (para el informe PDF)
+   Mismo orden que CATEGORIAS[].items — cada entrada tiene la frase
+   para cuando el ítem se respondió "SI" (ok) y para cuando se
+   respondió "NO" (fail).
+==================================================================== */
+const ITEM_PHRASES = {
+  orden: [
+    { ok:'Se evidenció que el área se encontraba limpia y ordenada.', fail:'Se evidenció que el área no se encontraba limpia ni ordenada.' },
+    { ok:'Se evidenció que los pasillos y vías de circulación se encontraban despejados.', fail:'Se evidenció que los pasillos y vías de circulación presentaban obstáculos.' },
+    { ok:'Se evidenció que las escaleras y rampas se encontraban limpias y libres de obstáculos.', fail:'Se evidenció que las escaleras y/o rampas presentaban suciedad u obstáculos.' },
+    { ok:'Se evidenció que los escritorios se encontraban limpios y ordenados.', fail:'Se evidenció que los escritorios no se encontraban limpios ni ordenados.' },
+    { ok:'Se evidenció la existencia de canecas debidamente identificadas para el desecho de residuos ordinarios y/u hospitalarios.', fail:'No se evidenciaron canecas debidamente identificadas para el desecho de residuos ordinarios y/u hospitalarios.' },
+    { ok:'Se evidenció que los cables de los equipos y/o herramientas se encontraban debidamente organizados.', fail:'Se evidenció desorden en los cables de los equipos y/o herramientas.' },
+    { ok:'Se evidenció que el área contaba con guardianes recolectores.', fail:'Se evidenció que el área no contaba con guardianes recolectores.' },
+    { ok:'Se evidenció que los guardianes recolectores se encontraban debidamente instalados.', fail:'Se evidenció que los guardianes recolectores no se encontraban debidamente instalados.' }
+  ],
+  infraestructura: [
+    { ok:'Se evidenció que los pisos y paredes se encontraban libres de agrietamiento, humedad o irregularidades en sus superficies.', fail:'Se evidenciaron agrietamiento, humedad o irregularidades en las superficies de pisos y/o paredes.' },
+    { ok:'Se evidenció que los techos se encontraban libres de orificios y bien ajustados.', fail:'Se evidenciaron orificios o falta de ajuste en los techos.' },
+    { ok:'Se evidenció que las puertas y ventanas se encontraban en óptimas condiciones.', fail:'Se evidenciaron puertas y/o ventanas en condiciones deficientes.' },
+    { ok:'Se evidenció que los vidrios internos y externos se encontraban en buenas condiciones y debidamente señalizados.', fail:'Se evidenciaron vidrios internos y/o externos en mal estado o sin señalización.' },
+    { ok:'Se evidenció que las escaleras y rampas de acceso se encontraban en óptimas condiciones.', fail:'Se evidenciaron escaleras y/o rampas de acceso en condiciones deficientes.' },
+    { ok:'Se evidenció que los pasamanos de las escaleras y/o rampas se encontraban en buenas condiciones.', fail:'Se evidenció que los pasamanos de las escaleras y/o rampas no se encontraban en buenas condiciones.' },
+    { ok:'Se evidenció que los peldaños de las escaleras fijas contaban con antideslizante.', fail:'Se evidenció que los peldaños de las escaleras fijas no contaban con antideslizante.' }
+  ],
+  electricas: [
+    { ok:'Se evidenció que los aires acondicionados se encontraban en buenas condiciones de funcionamiento.', fail:'Se evidenció que los aires acondicionados no se encontraban en buenas condiciones de funcionamiento.' },
+    { ok:'Se evidenció que las luminarias funcionaban en óptimas condiciones.', fail:'Se evidenció que las luminarias no funcionaban en óptimas condiciones.' },
+    { ok:'Se evidenció que los tomacorrientes funcionaban correctamente y se encontraban en buen estado.', fail:'Se evidenció que los tomacorrientes no funcionaban correctamente o no se encontraban en buen estado.' },
+    { ok:'Se evidenció que los interruptores funcionaban correctamente y se encontraban en buen estado.', fail:'Se evidenció que los interruptores no funcionaban correctamente o no se encontraban en buen estado.' },
+    { ok:'Se evidenció que los tableros eléctricos funcionaban correctamente, se encontraban en buen estado, con sus tapas y debidamente señalizados.', fail:'Se evidenció que los tableros eléctricos presentaban deficiencias en su funcionamiento, estado, tapas o señalización.' },
+    { ok:'Se evidenció que los cables de los equipos eléctricos se encontraban debidamente organizados y protegidos.', fail:'Se evidenció que los cables de los equipos eléctricos no se encontraban debidamente organizados o protegidos.' },
+    { ok:'Se evidenció que los cuartos de control eléctrico (subestación y/o planta de emergencia) se encontraban limpios y libres de objetos ajenos a este espacio.', fail:'Se evidenció que los cuartos de control eléctrico (subestación y/o planta de emergencia) no se encontraban limpios o presentaban objetos ajenos a este espacio.' }
+  ],
+  muebles: [
+    { ok:'Se evidenció que todos los puestos de trabajo estaban dotados de escritorios y sillas.', fail:'Se evidenció que no todos los puestos de trabajo estaban dotados de escritorios y sillas.' },
+    { ok:'Se evidenció que las sillas y escritorios se encontraban en buenas condiciones.', fail:'Se evidenció que las sillas y/o escritorios no se encontraban en buenas condiciones.' },
+    { ok:'Se evidenció que los archivadores y repisas se encontraban debidamente anclados a la pared.', fail:'Se evidenció que los archivadores y/o repisas no se encontraban debidamente anclados a la pared.' }
+  ],
+  equipos: [
+    { ok:'Se evidenció que los equipos y herramientas de trabajo se encontraban bien ubicados.', fail:'Se evidenció que los equipos y/o herramientas de trabajo no se encontraban bien ubicados.' },
+    { ok:'Se evidenció que los equipos y herramientas de trabajo funcionaban adecuadamente.', fail:'Se evidenció que los equipos y/o herramientas de trabajo no funcionaban adecuadamente.' },
+    { ok:'Se evidenció que los cables y dispositivos de control de los equipos y herramientas se encontraban en óptimas condiciones.', fail:'Se evidenció que los cables y/o dispositivos de control de los equipos y herramientas no se encontraban en óptimas condiciones.' },
+    { ok:'Se evidenció que las sillas de ruedas y camillas para pacientes funcionaban correctamente.', fail:'Se evidenció que las sillas de ruedas y/o camillas para pacientes no funcionaban correctamente.' }
+  ],
+  emergencia: [
+    { ok:'Se evidenció que el área se encontraba debidamente señalizada con vías de evacuación y salida de emergencia.', fail:'Se evidenció que el área no se encontraba debidamente señalizada con vías de evacuación y salida de emergencia.' },
+    { ok:'Se evidenció la existencia de extintores adecuados y debidamente distribuidos en toda el área.', fail:'No se evidenciaron extintores adecuados o debidamente distribuidos en toda el área.' },
+    { ok:'Se evidenció que los extintores se encontraban ubicados en una zona de fácil acceso.', fail:'Se evidenció que los extintores no se encontraban ubicados en una zona de fácil acceso.' },
+    { ok:'Se evidenció la existencia de botiquines de primeros auxilios señalizados y debidamente dotados.', fail:'No se evidenciaron botiquines de primeros auxilios señalizados o debidamente dotados.' },
+    { ok:'Se evidenció la existencia de lámparas de emergencia en el área.', fail:'No se evidenciaron lámparas de emergencia en el área.' },
+    { ok:'Se evidenció la existencia de un sistema de detección de humo y calor.', fail:'No se evidenció un sistema de detección de humo y calor.' },
+    { ok:'Se evidenció la existencia de un sistema de alarmas.', fail:'No se evidenció un sistema de alarmas.' },
+    { ok:'Se evidenció la existencia de camillas e inmovilizadores en el área.', fail:'No se evidenciaron camillas e inmovilizadores en el área.' }
+  ]
+};
+
+// Convierte un ítem (categoría + índice + respuesta + observación) en una frase narrativa para el informe
+function buildFinding(catId, idx, resp, observacion){
+  const ph = (ITEM_PHRASES[catId] || [])[idx];
+  let base = ph ? (resp==='SI' ? ph.ok : ph.fail)
+                : (resp==='SI' ? 'Se evidenció el cumplimiento del aspecto evaluado.' : 'Se evidenció el incumplimiento del aspecto evaluado.');
+  if(observacion && observacion.trim()){
+    const obs = observacion.trim().replace(/^[-–:]\s*/,'');
+    const obsLow = obs.charAt(0).toLowerCase() + obs.slice(1).replace(/[.;,]+$/,'');
+    base = base.replace(/\.$/,'') + '; ' + obsLow + '.';
+  }
+  return base;
+}
+
+/* ====================================================================
+   ESTADO
+==================================================================== */
+let CATS = {};          // CATS[catId] = [{resp,obs,om,evidencias:[{dataUrl,cloudUrl,title}]}, ...]
+let currentEvidenceItem = null;   // {catId, idx}
+let currentOmItem = null;         // {catId, idx}
+let categoryChart, distributionChart;
+
+function makeRowId(catId, idx){ return catId + '-' + idx; }
+function initCats(){
+  CATS = {};
+  CATEGORIAS.forEach(c => { CATS[c.id] = c.items.map(()=>({ resp:null, obs:'', om:'', evidencias:[] })); });
+}
+
+/* ====================================================================
+   UTILIDADES
+==================================================================== */
+function showNotification(message, type='success'){
+  const n = document.getElementById('notification');
+  document.getElementById('notification-text').textContent = message;
+  n.className = `notification notification-${type} show`;
+  const icon = n.querySelector('i');
+  icon.className = type==='error' ? 'fas fa-exclamation-circle' : type==='info' ? 'fas fa-info-circle' : 'fas fa-check-circle';
+  setTimeout(() => n.classList.remove('show'), 4200);
+}
+function showLoading(text){ document.getElementById('loading-text').textContent = text; document.getElementById('loading-overlay').classList.add('show'); }
+function hideLoading(){ document.getElementById('loading-overlay').classList.remove('show'); }
+function escapeHtml(s){ return (s||'').toString().replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ====================================================================
+   FORMULARIO
+==================================================================== */
+function onChangeEmpresa(){
+  poblarSedes();
+}
+function poblarSedes(){
+  const empresa = document.getElementById('empresa').value;
+  document.getElementById('sede').innerHTML = SEDES[empresa].map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+}
+function poblarInspectores(){
+  document.getElementById('inspector').innerHTML = INSPECTORES.map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+}
+
+function renderChecklist(){
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  CATEGORIAS.forEach(cat=>{
+    const trTitle = document.createElement('tr');
+    trTitle.innerHTML = `<td colspan="7" class="section-title">${cat.nombre}</td>`;
+    tbody.appendChild(trTitle);
+
+    cat.items.forEach((text, idx)=>{
+      const rid = makeRowId(cat.id, idx);
+      const state = CATS[cat.id][idx];
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${escapeHtml(text)}</td>
+        <td class="radio-cell"><button class="resp-btn si ${state.resp==='SI'?'sel':''}" onclick="setResp('${cat.id}',${idx},'SI')">SI</button></td>
+        <td class="radio-cell"><button class="resp-btn no ${state.resp==='NO'?'sel':''}" onclick="setResp('${cat.id}',${idx},'NO')">NO</button></td>
+        <td class="radio-cell"><button class="resp-btn na ${state.resp==='NA'?'sel':''}" onclick="setResp('${cat.id}',${idx},'NA')">N/A</button></td>
+        <td class="evidence-cell">
+          <button class="evidence-btn ${state.evidencias.length?'has-evidence':''}" id="ev-btn-${rid}" onclick="openEvidenceModal('${cat.id}',${idx})">
+            <i class="fas fa-camera"></i><span>Foto</span>
+            ${state.evidencias.length?`<span class="evidence-count">${state.evidencias.length}</span>`:''}
+          </button>
+        </td>
+        <td class="evidence-cell">
+          <button class="om-btn ${state.om?'has-om':''}" id="om-btn-${rid}" onclick="openOmModal('${cat.id}',${idx})">
+            <i class="fas fa-lightbulb"></i><span>OM</span>
+          </button>
+        </td>
+        <td><input type="text" class="obs-input" value="${escapeHtml(state.obs)}" placeholder="Observaciones..." oninput="setObs('${cat.id}',${idx},this.value)"></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    const trRes = document.createElement('tr');
+    trRes.className = 'result-row';
+    trRes.innerHTML = `<td>Resultado de la categoría</td><td colspan="6" class="radio-cell" id="result-${cat.id}">0%</td>`;
+    tbody.appendChild(trRes);
+  });
+}
+
+function setResp(catId, idx, val){
+  const s = CATS[catId][idx];
+  s.resp = (s.resp===val) ? null : val;
+  renderChecklist();
+  computeResults();
+}
+function setObs(catId, idx, val){ CATS[catId][idx].obs = val; }
+
+/* ====================================================================
+   RESULTADOS Y GRÁFICOS
+==================================================================== */
+function computeResults(){
+  let totalSi=0, totalNo=0, totalNa=0, totalObs=0, totalOm=0;
+  const porCategoria = [];
+
+  CATEGORIAS.forEach(cat=>{
+    let si=0, no=0;
+    CATS[cat.id].forEach(s=>{
+      if(s.resp==='SI') si++; else if(s.resp==='NO') no++; else if(s.resp==='NA') totalNa++;
+      if(s.obs && s.obs.trim()) totalObs++;
+      if(s.om && s.om.trim()) totalOm++;
+    });
+    totalSi += si; totalNo += no;
+    const t = si+no; const pct = t? Math.round((si/t)*100) : 0;
+    const el = document.getElementById('result-'+cat.id);
+    if(el) el.textContent = pct + '%';
+    porCategoria.push({ nombre:cat.nombre, pct: t? pct : null });
+  });
+
+  document.getElementById('sum-si').textContent = totalSi;
+  document.getElementById('sum-no').textContent = totalNo;
+  document.getElementById('sum-na').textContent = totalNa;
+  document.getElementById('sum-obs').textContent = totalObs;
+  document.getElementById('sum-om').textContent = totalOm;
+
+  const totalResp = totalSi + totalNo;
+  const finalPct = totalResp ? Math.round((totalSi/totalResp)*100) : 0;
+  document.getElementById('total-pct').textContent = finalPct + '%';
+  const box = document.getElementById('final-score-box');
+  if(finalPct>=90) box.style.background='linear-gradient(135deg,#4caf50 0%,#66bb6a 100%)';
+  else if(finalPct>=70) box.style.background='linear-gradient(135deg,#ff9800 0%,#ffa726 100%)';
+  else box.style.background='linear-gradient(135deg,#f44336 0%,#ef5350 100%)';
+
+  updateCharts(porCategoria, totalSi, totalNo, totalNa);
+  return { totalSi, totalNo, totalNa, totalObs, totalOm, finalPct, porCategoria };
+}
+
+function initializeCharts(){
+  const ctx1 = document.getElementById('categoryChart').getContext('2d');
+  const ctx2 = document.getElementById('distributionChart').getContext('2d');
+  categoryChart = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels:CATEGORIAS.map(c=>c.nombre), datasets:[{ data:CATEGORIAS.map(()=>0), backgroundColor:'#667eea', borderRadius:5 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>ctx.parsed.y+'%'}}
+      },
+      scales:{
+        y:{beginAtZero:true, max:100, ticks:{callback:v=>v+'%'}},
+        x:{ticks:{font:{size:9}}}
+      },
+      animation:{onComplete:function(){
+        const chart = this;
+        const ctx = chart.ctx;
+        chart.data.datasets.forEach((dataset,i)=>{
+          const meta = chart.getDatasetMeta(i);
+          meta.data.forEach((bar,j)=>{
+            const val = dataset.data[j];
+            if(val>0){
+              ctx.fillStyle = '#444';
+              ctx.font = 'bold 11px Segoe UI';
+              ctx.textAlign = 'center';
+              ctx.fillText(val+'%', bar.x, bar.y-5);
+            }
+          });
+        });
+      }}
+    }
+  });
+  distributionChart = new Chart(ctx2, {
+    type:'doughnut',
+    data:{ labels:['Cumple (SI)','No Cumple (NO)','No Aplica (N/A)'], datasets:[{ data:[0,0,0], backgroundColor:['#4caf50','#f44336','#90a4ae'] }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'60%', plugins:{legend:{position:'bottom'}} }
+  });
+}
+function updateCharts(porCategoria, si, no, na){
+  if(categoryChart){
+    categoryChart.data.datasets[0].data = porCategoria.map(c=>c.pct??0);
+    categoryChart.data.datasets[0].backgroundColor = porCategoria.map(c=>{
+      if(c.pct===null) return '#b0bec5';
+      if(c.pct>=90) return '#4caf50';
+      if(c.pct>=70) return '#ff9800';
+      return '#f44336';
+    });
+    categoryChart.data.labels = porCategoria.map(c=>c.nombre);
+    categoryChart.update();
+  }
+  if(distributionChart){ distributionChart.data.datasets[0].data = [si,no,na]; distributionChart.update(); }
+}
+
+/* ====================================================================
+   MODAL DE EVIDENCIAS (drag&drop + tomar foto + galería)
+==================================================================== */
+function openEvidenceModal(catId, idx){
+  currentEvidenceItem = { catId, idx };
+  const texto = CATEGORIAS.find(c=>c.id===catId).items[idx];
+  document.getElementById('modal-sub').textContent = texto.substring(0,90) + (texto.length>90?'…':'');
+  updateEvidencePreview();
+  document.getElementById('evidenceModal').style.display = 'block';
+}
+function closeEvidenceModal(){ document.getElementById('evidenceModal').style.display = 'none'; currentEvidenceItem = null; }
+function handleEvidenceUpload(event){
+  const files = event.target.files;
+  if(!files.length || !currentEvidenceItem) return;
+  processEvidenceFiles(files);
+  event.target.value = '';
+}
+function initDropZone(){
+  const dz = document.getElementById('dropZone');
+  ['dragenter','dragover'].forEach(ev=> dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(ev=> dz.addEventListener(ev, e=>{ e.preventDefault(); dz.classList.remove('drag-over'); }));
+  dz.addEventListener('drop', e=>{ if(e.dataTransfer.files.length && currentEvidenceItem) processEvidenceFiles(e.dataTransfer.files); });
+}
+function processEvidenceFiles(files){
+  if(!currentEvidenceItem) return;
+  const { catId, idx } = currentEvidenceItem;
+  const s = CATS[catId][idx];
+  Array.from(files).filter(f=>f.type.startsWith('image/')).slice(0, Math.max(0,8-s.evidencias.length)).forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const entry = { dataUrl:e.target.result, cloudUrl:null, title:'' };
+      s.evidencias.push(entry);
+      if(currentEvidenceItem && currentEvidenceItem.catId===catId && currentEvidenceItem.idx===idx) updateEvidencePreview();
+      refreshEvidenceButton(catId, idx);
+
+      const fd = new FormData();
+      fd.append('file', e.target.result);
+      fd.append('upload_preset', CLOUDINARY_PRESET);
+      fd.append('folder', 'copasst_inspecciones');
+      fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method:'POST', body:fd })
+        .then(r=>r.json()).then(data=>{
+          if(data.secure_url){
+            entry.cloudUrl = data.secure_url;
+            if(currentEvidenceItem && currentEvidenceItem.catId===catId && currentEvidenceItem.idx===idx) updateEvidencePreview();
+          }
+        }).catch(()=> showNotification('No se pudo subir una foto a Cloudinary (revisa la configuración)','error'));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function updateEvidencePreview(){
+  if(!currentEvidenceItem) return;
+  const { catId, idx } = currentEvidenceItem;
+  const s = CATS[catId][idx];
+  document.getElementById('evidence-preview').innerHTML = s.evidencias.map((ev,i)=>`
+    <div class="evidence-item">
+      <img src="${ev.cloudUrl||ev.dataUrl}">
+      <button class="evidence-remove" onclick="removeEvidence(${i})"><i class="fas fa-times"></i></button>
+      <div class="evidence-title-bar">
+        <input type="text" class="evidence-title-input" placeholder="Título de la foto (opcional)" value="${escapeHtml(ev.title)}" oninput="saveEvidenceTitle(${i}, this.value)">
+      </div>
+    </div>`).join('');
+}
+function removeEvidence(i){
+  const { catId, idx } = currentEvidenceItem;
+  CATS[catId][idx].evidencias.splice(i,1);
+  updateEvidencePreview();
+  refreshEvidenceButton(catId, idx);
+}
+function saveEvidenceTitle(i, val){
+  const { catId, idx } = currentEvidenceItem;
+  CATS[catId][idx].evidencias[i].title = val;
+}
+function refreshEvidenceButton(catId, idx){
+  const rid = makeRowId(catId, idx);
+  const btn = document.getElementById('ev-btn-'+rid);
+  if(!btn) return;
+  const count = CATS[catId][idx].evidencias.length;
+  btn.classList.toggle('has-evidence', count>0);
+  btn.innerHTML = `<i class="fas fa-camera"></i><span>Foto</span>${count?`<span class="evidence-count">${count}</span>`:''}`;
+}
+
+/* ====================================================================
+   MODAL DE OPORTUNIDAD DE MEJORA
+==================================================================== */
+function openOmModal(catId, idx){
+  currentOmItem = { catId, idx };
+  const texto = CATEGORIAS.find(c=>c.id===catId).items[idx];
+  document.getElementById('om-sub').textContent = texto.substring(0,90) + (texto.length>90?'…':'');
+  document.getElementById('om-textarea').value = CATS[catId][idx].om || '';
+  document.getElementById('omModal').style.display = 'block';
+  setTimeout(()=> document.getElementById('om-textarea').focus(), 100);
+}
+function closeOmModal(){ document.getElementById('omModal').style.display = 'none'; currentOmItem = null; }
+function saveOm(){
+  if(!currentOmItem) return;
+  const { catId, idx } = currentOmItem;
+  CATS[catId][idx].om = document.getElementById('om-textarea').value.trim();
+  refreshOmButton(catId, idx);
+  closeOmModal();
+  computeResults();
+}
+function refreshOmButton(catId, idx){
+  const rid = makeRowId(catId, idx);
+  const btn = document.getElementById('om-btn-'+rid);
+  if(!btn) return;
+  btn.classList.toggle('has-om', !!CATS[catId][idx].om);
+}
+
+/* ====================================================================
+   GRÁFICOS DIBUJADOS NATIVAMENTE EN EL PDF (vectoriales, no imágenes)
+==================================================================== */
+function drawBarChartPDF(doc, x, y, w, h, items, CG, CO, CR){
+  const labelH = 11, valueH = 5;
+  const plotH = h - labelH - valueH;
+  const baseline = y + valueH + plotH;
+  doc.setDrawColor(225,225,230); doc.setLineWidth(0.25);
+  doc.line(x, baseline, x+w, baseline);
+  const n = items.length || 1;
+  const gap = 3;
+  const barW = (w - gap*(n-1)) / n;
+  items.forEach((it,i)=>{
+    const bx = x + i*(barW+gap);
+    const pct = it.pct || 0;
+    const bh = Math.max((pct/100)*plotH, pct>0?1.5:0);
+    const by = baseline - bh;
+    const color = it.pct===null ? [200,200,205] : pct>=90?CG:pct>=70?CO:CR;
+    doc.setFillColor(color[0],color[1],color[2]);
+    doc.roundedRect(bx, by, barW, Math.max(bh,0.5), 0.8, 0.8, 'F');
+    doc.setFontSize(6.2); doc.setFont('helvetica','bold'); doc.setTextColor(color[0],color[1],color[2]);
+    doc.text(it.pct===null?'—':it.pct+'%', bx+barW/2, by-1.5, {align:'center'});
+    doc.setFontSize(5.4); doc.setFont('helvetica','normal'); doc.setTextColor(90,98,110);
+    const lbl = doc.splitTextToSize(it.nombre || it.label || '', barW+3).slice(0,2);
+    doc.text(lbl, bx+barW/2, baseline+4, {align:'center'});
+  });
+}
+function drawPieChartPDF(doc, cx, cy, radius, slices){
+  const total = slices.reduce((a,s)=>a+s.value,0) || 1;
+  let startAngle = -90;
+  slices.forEach(s=>{
+    if(s.value<=0) return;
+    const angleSpan = (s.value/total)*360;
+    const endAngle = startAngle + angleSpan;
+    doc.setFillColor(s.color[0],s.color[1],s.color[2]);
+    const steps = Math.max(1, Math.ceil(angleSpan/4));
+    for(let i=0;i<steps;i++){
+      const a1 = (startAngle + (angleSpan*i/steps)) * Math.PI/180;
+      const a2 = (startAngle + (angleSpan*(i+1)/steps)) * Math.PI/180;
+      const x1 = cx + radius*Math.cos(a1), y1 = cy + radius*Math.sin(a1);
+      const x2 = cx + radius*Math.cos(a2), y2 = cy + radius*Math.sin(a2);
+      doc.triangle(cx,cy,x1,y1,x2,y2,'F');
+    }
+    startAngle = endAngle;
+  });
+}
+
+/* ====================================================================
+   CORRECCIÓN DE ORIENTACIÓN EXIF (para el PDF)
+==================================================================== */
+function fixOrientationForPDF(src){
+  return new Promise(function(resolve){
+    if(typeof src === 'string' && src.startsWith('https://res.cloudinary.com/')){
+      const fixedUrl = src.replace('/upload/', '/upload/a_auto/');
+      const img0 = new Image(); img0.crossOrigin = 'anonymous';
+      img0.onload = function(){ try{ const cv=document.createElement('canvas'); cv.width=img0.naturalWidth; cv.height=img0.naturalHeight; cv.getContext('2d').drawImage(img0,0,0); resolve(cv.toDataURL('image/jpeg',0.92)); }catch(e){ resolve(fixedUrl); } };
+      img0.onerror = function(){ resolve(src); };
+      img0.src = fixedUrl + '?_t=' + Date.now();
+      return;
+    }
+    if(typeof src === 'string' && src.startsWith('http')){
+      const img1 = new Image(); img1.crossOrigin = 'anonymous';
+      img1.onload = function(){ try{ const cv=document.createElement('canvas'); cv.width=img1.naturalWidth; cv.height=img1.naturalHeight; cv.getContext('2d').drawImage(img1,0,0); resolve(cv.toDataURL('image/jpeg',0.92)); }catch(e){ resolve(src); } };
+      img1.onerror = function(){ resolve(src); };
+      img1.src = src;
+      return;
+    }
+    resolve(src);
+  });
+}
+
+/* ====================================================================
+   GUARDAR AUDITORÍA (Google Sheets vía Apps Script)
+==================================================================== */
+function getDatosFormulario(){
+  return {
+    empresa: document.getElementById('empresa').value,
+    sede: document.getElementById('sede').value,
+    fecha: document.getElementById('fecha').value,
+    inspector: document.getElementById('inspector').value
+  };
+}
+function construirItemsPayload(){
+  const items = [];
+  CATEGORIAS.forEach(cat=>{
+    cat.items.forEach((texto, idx)=>{
+      const s = CATS[cat.id][idx];
+      if(!s.resp && !s.obs.trim() && !s.om.trim() && !s.evidencias.length) return;
+      items.push({
+        catId: cat.id, categoria: cat.nombre, idx, pregunta: texto,
+        resp: s.resp || '', observacion: s.obs || '', om: s.om || '',
+        evidencias: s.evidencias.map(e=>e.cloudUrl).filter(Boolean)
+      });
+    });
+  });
+  return items;
+}
+
+async function guardarAuditoria(){
+  const datos = getDatosFormulario();
+  if(!datos.sede){ showNotification('Selecciona una sede','error'); return; }
+  if(!datos.fecha){ showNotification('Selecciona la fecha de inspección','error'); return; }
+  if(!datos.inspector){ showNotification('Selecciona el inspector','error'); return; }
+
+  const items = construirItemsPayload();
+  if(!items.length){ showNotification('Responde al menos un ítem antes de guardar','error'); return; }
+  if(GAS_URL.indexOf('PEGA_AQUI')!==-1){ showNotification('Falta configurar GAS_URL con la URL de tu Apps Script','error'); return; }
+
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+  try{
+    const resp = await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'guardarInspeccion', data:{ ...datos, items } }) });
+    const json = await resp.json();
+    if(json.success){
+      showNotification('Auditoría guardada en Google Sheets ✓', 'success');
+      setTimeout(resetFormulario, 1300);
+    } else {
+      showNotification('No se pudo guardar: ' + (json.error||'error desconocido'), 'error');
+    }
+  } catch(e){
+    showNotification('Error de conexión con Google Sheets: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Guardar auditoría';
+  }
+}
+function resetFormulario(){
+  initCats();
+  document.getElementById('fecha').value = new Date().toISOString().slice(0,10);
+  renderChecklist();
+  computeResults();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ====================================================================
+   GENERAR INFORME (PDF detallado — sin niveles de riesgo)
+==================================================================== */
+async function generarInforme(){
+  const datos = getDatosFormulario();
+  if(!datos.sede || !datos.fecha || !datos.inspector){ showNotification('Completa empresa, sede, fecha e inspector antes de generar el informe','error'); return; }
+
+  showLoading('Generando informe completo...');
+  await new Promise(r=>setTimeout(r,60));
+
+  try{
+    const r = computeResults();
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p','mm','a4');
+    const PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
+    const M = 15, CW = PW-M*2;
+    let yPos = M;
+
+    const CN=[30,60,114], CB=[42,82,152], CG=[76,175,80], CO=[255,152,0], CR=[244,67,54], CT=[44,62,80];
+    let SC; if(r.finalPct>=90) SC=CG; else if(r.finalPct>=70) SC=CO; else SC=CR;
+
+    const EMPRESA_NOMBRES_COMPLETOS = {
+      FOCA: 'Fundación Oftalmológica del Caribe',
+      VIU:  'Clínica Oftalmológica Internacional',
+      IMES: 'Inversiones Médicas Escaf Sales'
+    };
+    const empresaNombreCompleto = EMPRESA_NOMBRES_COMPLETOS[datos.empresa] || datos.empresa;
+
+    // Precargar logo como base64 con dimensiones reales
+    let logoBase64 = null;
+    let logoNW = 1, logoNH = 1;
+    try {
+      const logoResult = await new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function() {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            resolve({ data: canvas.toDataURL('image/png'), w: img.naturalWidth, h: img.naturalHeight });
+          } catch(e) { resolve(null); }
+        };
+        img.onerror = () => resolve(null);
+        img.src = 'https://i.imgur.com/F27EdWc.png?_=' + Date.now();
+        setTimeout(() => resolve(null), 5000);
+      });
+      if(logoResult){ logoBase64 = logoResult.data; logoNW = logoResult.w; logoNH = logoResult.h; }
+    } catch(e) { logoBase64 = null; }
+
+    function drawPageHeader(){
+      doc.setFillColor(CN[0],CN[1],CN[2]); doc.rect(0,0,PW,26,'F');
+      // Logo a la izquierda, sin cuadro, directo sobre el fondo azul
+      if(logoBase64){
+        try {
+          const logoH = 20;
+          const logoW = logoNH > 0 ? (logoNW / logoNH) * logoH : logoH;
+          doc.addImage(logoBase64, 'PNG', 4, 3, logoW, logoH);
+        } catch(e){}
+      }
+      doc.setTextColor(255,255,255); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.text(empresaNombreCompleto.toUpperCase(), PW/2, 10, {align:'center'});
+      doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+      doc.text('INFORME DE INSPECCIÓN DE CONDICIONES SEGURAS — SUBCOMITÉ COPASST', PW/2, 18, {align:'center'});
+    }
+    function addFooter(){ doc.setDrawColor(220,220,220); doc.setLineWidth(0.3); doc.line(M,PH-12,PW-M,PH-12); }
+    function newPage(){ addFooter(); doc.addPage(); drawPageHeader(); yPos=32; }
+    function chk(sp){ if(yPos+sp>PH-18){ newPage(); return true; } return false; }
+    function sectionBar(title, color){
+      chk(12);
+      doc.setFillColor(color[0],color[1],color[2]); doc.roundedRect(M,yPos,CW,9,2,2,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.text(title, M+4, yPos+6.5);
+      yPos += 13;
+    }
+
+    drawPageHeader(); yPos = 32;
+
+    sectionBar('INFORMACIÓN GENERAL DE LA INSPECCIÓN', CN);
+    doc.autoTable({ startY:yPos, body:[
+      ['Empresa:', empresaNombreCompleto, 'Sede:', datos.sede],
+      ['Fecha:', datos.fecha, 'Inspector:', datos.inspector]
+    ], theme:'grid', styles:{fontSize:8.5,textColor:CT,cellPadding:3.5,lineWidth:0.2,lineColor:[210,218,230]},
+    columnStyles:{0:{fontStyle:'bold',fillColor:[240,244,255],textColor:CN,cellWidth:34},1:{cellWidth:'auto'},2:{fontStyle:'bold',fillColor:[240,244,255],textColor:CN,cellWidth:34},3:{cellWidth:'auto'}},
+    margin:{left:M,right:M} });
+    yPos = doc.lastAutoTable.finalY + 10;
+
+    sectionBar('RESUMEN DE RESULTADOS', CN);
+    chk(26);
+    const counts = [
+      {l:'Cumplen (SI)', n:r.totalSi, c:CG}, {l:'No Cumplen (NO)', n:r.totalNo, c:CR},
+      {l:'No Aplica', n:r.totalNa, c:[120,140,160]}, {l:'Oport. de Mejora', n:r.totalOm, c:[156,39,176]}
+    ];
+    const bw = (CW-3*5)/4;
+    counts.forEach((c,i)=>{
+      doc.setFillColor(c.c[0],c.c[1],c.c[2]); doc.roundedRect(M+i*(bw+5),yPos,bw,21,3,3,'F');
+      doc.setTextColor(255,255,255); doc.setFontSize(15); doc.setFont('helvetica','bold');
+      doc.text(c.n.toString(), M+i*(bw+5)+bw/2, yPos+12, {align:'center'});
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+      doc.text(c.l, M+i*(bw+5)+bw/2, yPos+18, {align:'center'});
+    });
+    yPos += 29;
+
+    // Hallazgos narrativos: Conformes y No Conformes, agrupados por categoría
+    // (Los ítems en N/A se cuentan en el resumen pero NO se listan aquí como hallazgo)
+    function renderFindingGroupList(itemsList, label, color){
+      if(!itemsList.length) return;
+      const bySec = {};
+      itemsList.forEach(it=>{ if(!bySec[it.categoria]) bySec[it.categoria]=[]; bySec[it.categoria].push(it); });
+      sectionBar(label, color);
+      let gIdx = 1;
+      Object.keys(bySec).forEach(secName=>{
+        chk(12);
+        doc.setFillColor(240,244,255); doc.roundedRect(M,yPos,CW,8,2,2,'F');
+        doc.setTextColor(CN[0],CN[1],CN[2]); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+        doc.text(secName, M+4, yPos+5.8);
+        yPos += 11;
+        bySec[secName].forEach(it=>{
+          const parrafo = buildFinding(it.catId, it.idx, it.resp, it.observacion);
+          const lineas = doc.splitTextToSize(parrafo, CW-12);
+          chk(lineas.length*4.8+8);
+          doc.setFillColor(color[0],color[1],color[2]); doc.circle(M+3.5,yPos+3,2.8,'F');
+          doc.setTextColor(255,255,255); doc.setFontSize(6); doc.setFont('helvetica','bold');
+          doc.text(String(gIdx), M+3.5, yPos+3.8, {align:'center'});
+          doc.setTextColor(CT[0],CT[1],CT[2]); doc.setFontSize(8); doc.setFont('helvetica','normal');
+          doc.text(lineas, M+9, yPos+3);
+          yPos += lineas.length*4.8+6;
+          gIdx++;
+        });
+        yPos += 3;
+      });
+      yPos += 4;
+    }
+
+    const items = construirItemsPayload();
+    const conformes = items.filter(it=>it.resp==='SI');
+    const noConformes = items.filter(it=>it.resp==='NO');
+    renderFindingGroupList(conformes, 'HALLAZGOS CONFORMES', CG);
+    renderFindingGroupList(noConformes, 'HALLAZGOS NO CONFORMES', CR);
+
+    // Oportunidades de mejora
+    const oms = items.filter(it=>it.om && it.om.trim());
+    if(oms.length){
+      sectionBar('OPORTUNIDADES DE MEJORA', CB);
+      let gIdx = 1;
+      oms.forEach(it=>{
+        const lineas = doc.splitTextToSize(`${it.categoria}: ${it.om}`, CW-12);
+        chk(lineas.length*4.8+8);
+        doc.setFillColor(CB[0],CB[1],CB[2]); doc.circle(M+3.5,yPos+3,2.8,'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(6); doc.setFont('helvetica','bold');
+        doc.text(String(gIdx), M+3.5, yPos+3.8, {align:'center'});
+        doc.setTextColor(CT[0],CT[1],CT[2]); doc.setFontSize(8); doc.setFont('helvetica','normal');
+        doc.text(lineas, M+9, yPos+3);
+        yPos += lineas.length*4.8+6;
+        gIdx++;
+      });
+      yPos += 4;
+    }
+
+    // Resultados por categoría (tabla de porcentajes, sin clasificación de riesgo)
+    sectionBar('RESULTADOS POR CATEGORÍA', CN);
+    doc.autoTable({ startY:yPos, head:[['Categoría','Resultado %']],
+      body:r.porCategoria.map(c=>[c.nombre, c.pct===null?'—':c.pct+'%']),
+      theme:'grid', headStyles:{fillColor:CN,textColor:[255,255,255],fontSize:9,fontStyle:'bold'},
+      bodyStyles:{fontSize:8.5,textColor:CT,lineWidth:0.2,lineColor:[210,218,230]},
+      columnStyles:{0:{cellWidth:'auto',fontStyle:'bold'},1:{cellWidth:35,halign:'center'}},
+      margin:{left:M,right:M},
+      didParseCell:function(d){
+        if(d.section==='body' && d.column.index===1){
+          const v = parseInt(d.cell.text[0]);
+          if(isNaN(v)) return;
+          if(v>=90){ d.cell.styles.textColor=CG; d.cell.styles.fillColor=[232,245,233]; }
+          else if(v>=70){ d.cell.styles.textColor=CO; d.cell.styles.fillColor=[255,243,224]; }
+          else { d.cell.styles.textColor=CR; d.cell.styles.fillColor=[255,235,238]; }
+        }
+      }
+    });
+    yPos = doc.lastAutoTable.finalY + 14;
+
+    // Gráficas (dibujadas de forma nativa/vectorial dentro del propio PDF)
+    sectionBar('VISUALIZACIÓN DE RESULTADOS', CN);
+    chk(80);
+    const cw1 = (CW-10)/2, chH = 64;
+    doc.setFillColor(248,249,251); doc.roundedRect(M,yPos,cw1,chH,3,3,'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(CN[0],CN[1],CN[2]);
+    doc.text('Cumplimiento por Categoría', M+cw1/2, yPos+8, {align:'center'});
+    drawBarChartPDF(doc, M+6, yPos+12, cw1-12, chH-18, r.porCategoria, CG, CO, CR);
+
+    doc.setFillColor(248,249,251); doc.roundedRect(M+cw1+10,yPos,cw1,chH,3,3,'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(CN[0],CN[1],CN[2]);
+    doc.text('Distribución de Respuestas', M+cw1+10+cw1/2, yPos+8, {align:'center'});
+    const pieCx = M+cw1+10+cw1/2-12, pieCy = yPos+34, pieR = 16;
+    const slices = [ {label:'SI',value:r.totalSi,color:CG}, {label:'NO',value:r.totalNo,color:CR}, {label:'N/A',value:r.totalNa,color:[150,160,170]} ];
+    drawPieChartPDF(doc, pieCx, pieCy, pieR, slices);
+    let legY = yPos+18;
+    slices.forEach(s=>{
+      doc.setFillColor(s.color[0],s.color[1],s.color[2]); doc.rect(pieCx+pieR+10, legY-2.5, 4, 4, 'F');
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(CT[0],CT[1],CT[2]);
+      doc.text(`${s.label}: ${s.value}`, pieCx+pieR+16, legY+1);
+      legY += 9;
+    });
+    yPos += chH + 10;
+
+    // Evidencias fotográficas — agrupadas SOLO por categoría (todas las fotos de esa categoría)
+    const fotosPorCategoria = {};
+    CATEGORIAS.forEach(cat=>{
+      const fotos = [];
+      CATS[cat.id].forEach(s=> s.evidencias.forEach(ev=> fotos.push(ev)));
+      if(fotos.length) fotosPorCategoria[cat.nombre] = fotos;
+    });
+    const nombresConFotos = Object.keys(fotosPorCategoria);
+    if(nombresConFotos.length){
+      newPage();
+      sectionBar('ANEXOS: EVIDENCIA FOTOGRÁFICA', CB);
+      let anexoNum = 1;
+      for(const catNombre of nombresConFotos){
+        const fotos = fotosPorCategoria[catNombre];
+        chk(14);
+        doc.setFillColor(CN[0],CN[1],CN[2]); doc.roundedRect(M,yPos,CW,9,2,2,'F');
+        doc.setTextColor(255,255,255); doc.setFontSize(8.5); doc.setFont('helvetica','bold');
+        doc.text(catNombre, M+4, yPos+6.2);
+        yPos += 12;
+        for(let i=0;i<fotos.length;i+=2){
+          chk(80);
+          const iw=(CW-8)/2, ih=60;
+          const src1 = fotos[i].cloudUrl || fotos[i].dataUrl;
+          try{ const du1 = await fixOrientationForPDF(src1); doc.addImage(du1,'JPEG',M,yPos,iw,ih); }catch(e){}
+          const cap1 = 'Anexo '+anexoNum+(fotos[i].title?': '+fotos[i].title:'');
+          doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(50,60,80);
+          doc.text(doc.splitTextToSize(cap1, iw-2), M+iw/2, yPos+ih+5, {align:'center'});
+          anexoNum++;
+          if(fotos[i+1]){
+            const src2 = fotos[i+1].cloudUrl || fotos[i+1].dataUrl;
+            try{ const du2 = await fixOrientationForPDF(src2); doc.addImage(du2,'JPEG',M+iw+8,yPos,iw,ih); }catch(e){}
+            const cap2 = 'Anexo '+anexoNum+(fotos[i+1].title?': '+fotos[i+1].title:'');
+            doc.setFontSize(7.5); doc.setFont('helvetica','italic'); doc.setTextColor(50,60,80);
+            doc.text(doc.splitTextToSize(cap2, iw-2), M+iw+8+iw/2, yPos+ih+5, {align:'center'});
+            anexoNum++;
+          }
+          yPos += ih+10;
+        }
+        yPos += 6;
+      }
+    }
+
+    // Resultado final
+    newPage();
+    sectionBar('RESULTADO FINAL', CN);
+    chk(45);
+    doc.setFillColor(SC[0],SC[1],SC[2]); doc.roundedRect(M+30,yPos,CW-60,32,5,5,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.text('CUMPLIMIENTO GENERAL', PW/2, yPos+9, {align:'center'});
+    doc.setFontSize(24); doc.text(r.finalPct+'%', PW/2, yPos+24, {align:'center'});
+    yPos += 42;
+
+    // Conclusión narrativa automática
+    sectionBar('CONCLUSIÓN', CN);
+    chk(50);
+    const catMasBaja = r.porCategoria.filter(c=>c.pct!==null).sort((a,b)=>a.pct-b.pct)[0];
+    const catMasAlta = r.porCategoria.filter(c=>c.pct!==null).sort((a,b)=>b.pct-a.pct)[0];
+    const nivelGeneral = r.finalPct>=90 ? 'ALTO' : r.finalPct>=70 ? 'MEDIO' : 'BAJO';
+    const valoracion = r.finalPct>=90
+      ? 'Las condiciones de seguridad y salud en el trabajo se encuentran en un nivel de cumplimiento satisfactorio.'
+      : r.finalPct>=70
+        ? 'Las condiciones de seguridad y salud en el trabajo presentan un nivel de cumplimiento aceptable, con aspectos susceptibles de mejora.'
+        : 'Las condiciones de seguridad y salud en el trabajo presentan un nivel de cumplimiento bajo, requiriendo acciones correctivas inmediatas.';
+    const catBajaTexto = catMasBaja
+      ? ` La categoría con menor desempeño fue "${catMasBaja.nombre}" con un ${catMasBaja.pct}% de cumplimiento, lo que indica la necesidad de intervención prioritaria en dicha área.`
+      : '';
+    const catAltaTexto = catMasAlta && catMasAlta !== catMasBaja
+      ? ` Por su parte, la categoría con mejor desempeño fue "${catMasAlta.nombre}" con un ${catMasAlta.pct}%.`
+      : '';
+    const noConformesTexto = r.totalNo > 0
+      ? ` Se registraron ${r.totalNo} hallazgo(s) no conforme(s) que deberán ser atendidos mediante planes de acción correctiva dentro de los plazos establecidos por el Subcomité COPASST.`
+      : ' No se registraron hallazgos no conformes durante la inspección.';
+    const omTexto = r.totalOm > 0
+      ? ` Adicionalmente, se identificaron ${r.totalOm} oportunidad(es) de mejora para fortalecer el sistema de gestión de seguridad.`
+      : '';
+    const conclusionTexto =
+      `La inspección de condiciones seguras realizada en ${empresaNombreCompleto} — sede ${datos.sede}, el día ${datos.fecha}, arrojó un cumplimiento general del ${r.finalPct}%, correspondiente a un nivel ${nivelGeneral}. ${valoracion}${catBajaTexto}${catAltaTexto}${noConformesTexto}${omTexto}`;
+
+    const conclusionLineas = doc.splitTextToSize(conclusionTexto, CW-12);
+    const conclusionH = conclusionLineas.length * 5 + 14;
+    doc.setFillColor(248,250,255); doc.roundedRect(M, yPos, CW, conclusionH, 3, 3, 'F');
+    doc.setTextColor(CT[0],CT[1],CT[2]); doc.setFontSize(8.5); doc.setFont('helvetica','normal');
+    // Texto justificado manualmente línea por línea
+    const lineH = 5;
+    const textX = M + 6;
+    const maxW = CW - 12;
+    conclusionLineas.forEach((linea, i) => {
+      const esUltima = i === conclusionLineas.length - 1;
+      if(esUltima){
+        doc.text(linea, textX, yPos + 8 + i * lineH);
+      } else {
+        const palabras = linea.split(' ');
+        if(palabras.length <= 1){ doc.text(linea, textX, yPos + 8 + i * lineH); return; }
+        const anchoTexto = doc.getTextWidth(palabras.join(' '));
+        const espacioExtra = (maxW - anchoTexto) / (palabras.length - 1);
+        let curX = textX;
+        palabras.forEach((p, pi) => {
+          doc.text(p, curX, yPos + 8 + i * lineH);
+          curX += doc.getTextWidth(p) + doc.getTextWidth(' ') + espacioExtra;
+        });
+      }
+    });
+    yPos += conclusionH + 14;
+
+    // Firma
+    chk(36);
+    doc.setDrawColor(180,190,210); doc.setLineWidth(0.4);
+    const sigW=60, sigX=(PW-sigW)/2, sigY=yPos+18;
+    doc.line(sigX, sigY, sigX+sigW, sigY);
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(CN[0],CN[1],CN[2]);
+    doc.text(datos.inspector, sigX+sigW/2, sigY+6, {align:'center'});
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(CT[0],CT[1],CT[2]);
+    doc.text('Inspector(a) — Subcomité COPASST', sigX+sigW/2, sigY+11, {align:'center'});
+
+    addFooter();
+    doc.save(`Inspeccion_${datos.empresa}_${datos.sede.replace(/\s+/g,'_')}_${datos.fecha}.pdf`);
+    showNotification('Informe generado correctamente ✓', 'success');
+  } catch(e){
+    showNotification('Error al generar el informe: ' + e.message, 'error');
+  } finally {
+    hideLoading();
+  }
+}
+
+/* ====================================================================
+   ARRANQUE
+==================================================================== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  initCats();
+  poblarSedes();
+  poblarInspectores();
+  document.getElementById('fecha').value = new Date().toISOString().slice(0,10);
+  const vigEl = document.getElementById('vigencia-val'); if(vigEl) vigEl.textContent = new Date().getFullYear();
+  renderChecklist();
+  initializeCharts();
+  computeResults();
+  initDropZone();
+  window.onclick = e=>{
+    if(e.target === document.getElementById('evidenceModal')) closeEvidenceModal();
+    if(e.target === document.getElementById('omModal')) closeOmModal();
+  };
+});
+</script>
+</body>
+</html>
